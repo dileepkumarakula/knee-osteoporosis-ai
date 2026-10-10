@@ -81,9 +81,20 @@ class Predictor:
         for index in range(rows * columns):
             row, column = divmod(index, columns)
             y0, x0 = row * cell_h, column * cell_w
-            batch[index, :, y0:min(y0 + cell_h, height), x0:min(x0 + cell_w, width)] = 0.0
-
-        probabilities = self._softmax(self._logits(batch))[:, class_index]
+            batch[
+                 index,
+                 :,
+                 y0:min(y0 + cell_h, height),
+                 x0:min(x0 + cell_w, width),
+                ] = 0.0
+        # Process masked images in smaller batches to reduce peak memory usage.
+        probabilities = []
+        for start in range(0, rows * columns, 2):
+            mini_batch = batch[start:start + 2]
+            logits = self._logits(mini_batch)
+            scores = self._softmax(logits)[:, class_index]
+            probabilities.extend(scores.tolist())
+        probabilities = np.asarray(probabilities, dtype=np.float64)
         sensitivity = np.maximum(base_probability - probabilities, 0).reshape(rows, columns)
         peak = float(sensitivity.max())
         if peak < 1e-4:
