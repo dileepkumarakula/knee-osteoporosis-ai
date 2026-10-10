@@ -27,6 +27,9 @@ class Predictor:
         try:
             options = ort.SessionOptions()
             options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+            options.intra_op_num_threads = 2
+            options.inter_op_num_threads = 1
+            options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
             self.session = ort.InferenceSession(
                 str(model_path), sess_options=options, providers=["CPUExecutionProvider"]
             )
@@ -147,7 +150,7 @@ class Predictor:
                 class_index,
                 float(scores[class_index]),
             )
-         # Step 4: Get the predicted class
+        # Step 4: Get the predicted class
         predicted = self.classes[class_index]
 
         # Step 5: Return prediction and visualization
