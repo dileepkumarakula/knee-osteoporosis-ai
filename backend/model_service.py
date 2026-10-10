@@ -115,29 +115,31 @@ class Predictor:
             "gradcam_overlay": self._data_url(overlay),
             "caption": "Warmer regions indicate areas where masking lowered the model score. This coarse sensitivity map is not Grad-CAM, a lesion location, or clinical proof.",
         }
-
     def predict(self, image: Image.Image) -> dict:
         tensor = self._prepare(image)
         with self.lock:
+            # Step 1: Predict the X-ray class
             logits = self._logits(tensor)
             scores = self._softmax(logits)[0]
             class_index = int(scores.argmax())
+
+            # Step 2: Calculate probabilities
             probabilities = {
                 label: round(float(scores[index] * 100), 2)
                 for index, label in enumerate(self.classes)
             }
-            try:
-                explanation = self._occlusion_data(
-                    image, tensor, class_index, float(scores[class_index])
-                )
-            except Exception:
-                explanation = {
-                    "available": False,
-                    "method": "Occlusion sensitivity",
-                    "caption": "A model-sensitivity image could not be generated for this inference.",
-                }
 
+            # Step 3: Generate the AI sensitivity overlay
+            explanation = self._occlusion_data(
+                image,
+                tensor,
+                class_index,
+                float(scores[class_index]),
+            )
+         # Step 4: Get the predicted class
         predicted = self.classes[class_index]
+
+        # Step 5: Return prediction and visualization
         return {
             "prediction": predicted,
             "highest_model_probability": probabilities[predicted],
