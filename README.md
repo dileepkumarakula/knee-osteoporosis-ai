@@ -6,7 +6,7 @@ The existing HTML/CSS/JavaScript interface sends uploaded X-rays to a local Flas
 
 1. Install Python 3.10 or newer.
 2. Double-click `run_backend.bat`. It creates `.venv`, installs the small runtime dependencies in `requirements.txt`, and starts the local server.
-3. Open <http://127.0.0.1:5000>, choose a JPG or PNG knee X-ray, and start the analysis.
+3. Open <https://knee-osteoporosis-ai.onrender.com> choose a JPG or PNG knee X-ray, and start the analysis.
 
 The first install needs internet access for Flask and ONNX Runtime. The server binds to localhost only. Uploaded images are processed in memory and are not saved to disk.
 
